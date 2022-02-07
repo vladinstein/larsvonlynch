@@ -33,7 +33,9 @@ mail = Mail(app)
 def test_job():
     with app.app_context():
         # Select all users
-        print ("loaded scheduler")
+        n = 1 
+        print ("loaded scheduler", n)
+        n = n + 1
         allus_stmt = (select(users))
         with engine.connect() as conn:
             all_users = conn.execute(allus_stmt).mappings().all()
@@ -83,7 +85,7 @@ def test_job():
 
 # This is going to perform the task above at the same intervals (every day, but can be a different interval)
 scheduler = BackgroundScheduler()
-job = scheduler.add_job(test_job, trigger='cron', hour='20', minute='41')
+job = scheduler.add_job(test_job, trigger='cron', hour='20', minute='49')
 scheduler.start()
 
 # Ensure responses aren't cached
