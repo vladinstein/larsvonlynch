@@ -82,7 +82,7 @@ def test_job():
 
 # This is going to perform the task above at the same intervals (every day, but can be a different interval)
 scheduler = BackgroundScheduler()
-job = scheduler.add_job(test_job, trigger='cron', hour='19', minute='47')
+job = scheduler.add_job(test_job, trigger='cron', hour='20', minute='20')
 scheduler.start()
 
 # Ensure responses aren't cached
@@ -385,4 +385,4 @@ def support():
     return render_template("support.html")
 
 if __name__ == "__main__":
-        app.run()
+        app.run(debug=True, use_reloader=False)
