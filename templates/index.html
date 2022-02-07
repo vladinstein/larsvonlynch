@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block main %}
+<form action="/add" method="post">
+    <div class="form-group">
+        <label for="movie-choice">Name of the movie:</label>
+        <input type="text" autocomplete="off" autofocus list="movie-options" id="movie-choice" name="movie-choice">
+        <datalist id="movie-options"></datalist>
+    </div>
+    <button class="btn btn-primary" type="submit">Add movie</button>
+</form>
+<div class="table-responsive mt-3">
+    <table class="table">
+        <thead>
+            <th scope="col">Movie</th>
+            <th scope="col">Release date</th>
+            <th class="delete" scope="col">Delete</th>
+            <th scope="col">Released</th>
+        </thead>
+        <tbody>
+            {% for row in rows_m %}
+                <tr>
+                    <td scope="row">{{row["title"]}}</td>
+                    <td>{{row["date"]}}</td>
+                    <td>
+                        <form action="/delete" method="post">
+                            <input type="hidden" name="delete" value='{{row["id"]}}'>
+                            <button class="btn btn-primary" type="submit">Delete</button>
+                        </form>
+                    </td>
+                    {% if row["released"] %}
+                        <td>Yes</td>
+                    {% else %}
+                        <td>No</td>
+                    {% endif %}    
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<!-- Using datatables library -->
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap5.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.table').DataTable({
+            "searching": false,
+            "lengthChange": false,
+            "bInfo" : false,
+            "paging": false,
+            "order": [[ 1, "asc" ]],
+            "columnDefs": [{
+                "targets"  : 'delete',
+                "orderable": false,
+            }]
+        });
+    });
+    let input = document.querySelector('input');
+    input.addEventListener('keyup', function() {
+        $.get('/search?q=' + input.value, function(moviedb) {
+            let html = '';
+            for (let id in moviedb)
+            {
+                let title = moviedb[id].title;
+                let date = moviedb[id].release_date;
+                html += '<option value="' + title + ' ' + date + '">';
+            }
+            document.querySelector('datalist').innerHTML = html;
+        })
+    })
+
+</script>
+{% endblock %}

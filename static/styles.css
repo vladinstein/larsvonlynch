@@ -1,0 +1,48 @@
+nav #navbar .navbar-nav li a{
+    color: white;
+    }
+
+nav #navbar .navbar-nav li a:hover{
+    color: #87CEFA;
+    }
+
+nav #navbar .navbar-nav li a:active{
+    color: white;
+    text-decoration: underline;
+    }
+
+nav #navbar .navbar-nav .active a{
+    text-decoration: underline;
+    }
+
+nav #navbar span{
+    color: white;
+    }
+
+main {
+    overflow-x: auto; 
+    text-align: center;
+}
+
+main .form-control {
+    display: inline-block;
+    width: auto;
+}
+
+main .info{ 
+    text-align: left;
+}
+
+main .table {
+    display: inline-block;
+    width: auto;
+}
+
+.mail-text {
+    font-size: 32px;
+    border-style: double;
+}
+
+ul {
+    list-style-type:none;
+}

@@ -1,0 +1,85 @@
+{% extends "layout.html" %} 
+
+{% block main %} 
+<form action="/settings" method="post">
+    {% for row in rows %}
+        <div class="form-group">
+            <div class="mb-3">Please, remind me:</div>    
+                <div class="mb-3">
+                {% if row["month"] %}
+                    <input type="checkbox" id="month" name="month" checked>
+                    <label for="month">30 days</label>
+                {% else %}
+                    <input type="checkbox" id="month" name="month">
+                    <label for="month">30 days</label>
+                {% endif %}
+
+                {% if row["week"] %}
+                    <input type="checkbox" id="week" name="week" checked>
+                    <label for="week">7 days</label>
+                {% else %}
+                    <input type="checkbox" id="week" name="week">
+                    <label for="week">7 days</label>
+                {% endif %}
+                </div>
+                <div class="mb-3">
+                {% if row["day_1"] %}
+                    <input type="checkbox" id="day_1" name="day_1" checked>
+                    <label for="1day">1 day before the release date.</label>
+                {% else %}
+                    <input type="checkbox" id="day_1" name="day_1">
+                    <label for="1day">1 day before the release date.</label>
+                {% endif %}
+                </div>
+                <div class="mb-3">
+
+                {% if row["day_0"] %}
+                    <input type="checkbox" id="day_0" name="day_0" checked>
+                    <label for="0day">On the day of the release</label>
+                {% else %}
+                    <input type="checkbox" id="day_0" name="day_0">
+                    <label for="0day">On the day of the release</label>
+                {% endif %}
+                </div>
+        </div>
+        <div class="form-group">
+            <p>
+                {% if row["other"] %}
+                    <input type="checkbox" id="ch_other" name="ch_other" checked>
+                    Also remind me:
+                    <input type="text" autocomplete="off" name="other" id="other" placeholder='{{ row["other"] }}'>
+                    <label for="other">days before the release.</label>
+                {% else %}
+                    <input type="checkbox" autocomplete="off" id="ch_other" name="ch_other">
+                    Also remind me:
+                    <input type="text" autocomplete="off" name="other" id="other" placeholder='any number of'>
+                    <label for="other">days before the release.</label>
+                {% endif %}
+            </p>        
+        </div>
+    {% endfor %}    
+    <button class="btn btn-primary" id="submit" name="submit">Save changes</button>
+</form>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script>
+$(document).ready(function() {    
+    $('#ch_other').click(function() {
+    $('#other').prop('disabled', !this.checked)
+});  
+
+    $('#ch_other').click(function() {
+        if ( ($(this).is(':checked')) && ($('#other').attr('placeholder') == 'any number of')) 
+            $('#submit').prop('disabled', true)
+        if (!$(this).is(':checked'))
+            $('#submit').prop('disabled', false)
+            $('#other').attr('placeholder', 'any number of')
+    });
+    $('#other').keyup(function() {
+        if ($(this).val())
+            $('#submit').prop('disabled', false)
+        else
+            $('#submit').prop('disabled', true)    
+    });   
+});
+</script>
+{% endblock %}

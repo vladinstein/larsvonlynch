@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="initial-scale=1, width=device-width">
+        <title>Lars Von Lynch</title>
+    </head>
+    <body>
+        <div  style="font-size:32px; border-style: double; padding:32px">
+            {% if interval > 1 %}
+                <div style="padding-bottom:32px"> Hello, {{ username }}. The movie "{{ movie }}" is going to be released in {{ interval }} days (on {{ date }}).
+                </div>
+            {% elif interval == 1 %}
+                <div style="padding-bottom:32px"> Hello, {{ username }}. The movie "{{ movie }}" is going to be released tomorrow (on {{ date }}).
+                </div>
+            {% else %}
+                <div style="padding-bottom:32px"> Hello, {{ username }}. The movie "{{ movie }}" is going to be released today (on {{ date }}).
+                </div>
+            {% endif %}
+            <img style="display:block; margin:auto; width: 24em" src="https://larsvonlynch.herokuapp.com/static/lynch.jpg">
+        </div>
+    </body>
+</html>
