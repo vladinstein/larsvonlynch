@@ -52,7 +52,7 @@ def test_job():
                     if datetime.datetime.strptime(movie["date"], "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=30):
                         interval = 30
                 if one_user["week"]:
-                    if datetime.datetime.strptime(movie["date"], "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=7):
+                    if datetime.datetime.strptime(movie["date"], "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=4):
                         interval = 7
                 if one_user["other"]:
                     if datetime.datetime.strptime(movie["date"], "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=one_user["other"]):
@@ -82,7 +82,7 @@ def test_job():
 
 # This is going to perform the task above at the same intervals (every day, but can be a different interval)
 scheduler = BackgroundScheduler()
-job = scheduler.add_job(test_job, trigger='cron', hour='5', minute='35')
+job = scheduler.add_job(test_job, trigger='cron', hour='19', minute='47')
 scheduler.start()
 
 # Ensure responses aren't cached
