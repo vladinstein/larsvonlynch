@@ -3,11 +3,12 @@ import dateutil.relativedelta
 import datetime
 from datetime import date
 from flask import render_template
+from sqlalchemy import create_engine, MetaData, Table, text
 from sqlalchemy import select, update
 from sqlalchemy import and_
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_mail import Mail, Message
-from application import app, engine, users, movies
+from application import app
 
 # Mail server configuration
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
@@ -17,6 +18,14 @@ app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD")
 app.config["MAIL_USE_TLS"] = False
 app.config["MAIL_USE_SSL"] = True
 mail = Mail(app)
+
+# Configure sqlalchemy database
+engine = create_engine('sqlite:///movies.db')
+
+# And tables
+metadata = MetaData(bind=engine)
+users = Table('users', metadata, autoload = True)
+movies = Table('movies', metadata, autoload = True)
 
 with app.app_context():
     # Select all users
