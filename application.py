@@ -82,7 +82,7 @@ def test_job():
 
 # This is going to perform the task above at the same intervals (every day, but can be a different interval)
 scheduler = BackgroundScheduler()
-job = scheduler.add_job(test_job, trigger='cron', hour='0', minute='48')
+job = scheduler.add_job(test_job, trigger='cron', hour='0', minute='28')
 scheduler.start()
 
 # Ensure responses aren't cached
@@ -101,7 +101,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure sqlalchemy database
-engine = create_engine('sqlite:///movies.db')
+engine = create_engine('postgresql+psycopg2://postgres:{}@localhost:5432/movies'.format(os.environ.get("POST_PASS")))
 
 # And tables
 metadata = MetaData(bind=engine)
@@ -113,10 +113,11 @@ movies = Table('movies', metadata, autoload = True)
 def index():
     """Show a table of movies"""
 
-    # Get all the movies for that user to put them in a table.
+    # Get user name to pass it to layout template to say hello.
     us_stmt = (select(users).where(users.c.id == session["user_id"]))
     with engine.connect() as conn:
         rows = conn.execute(us_stmt).mappings().all()
+    # Get all the movies for that user to put them in a table.
     mov_stmt = (select(movies).where(movies.c.user_id == session["user_id"]))
     with engine.connect() as conn:
         rows_m = conn.execute(mov_stmt).mappings().all()
