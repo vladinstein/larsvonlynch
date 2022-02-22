@@ -8,7 +8,7 @@ from flask import redirect, render_template, request, session, flash
 from flask import jsonify
 from flask_session import Session
 from flask_mail import Mail, Message
-from sqlalchemy import create_engine, MetaData, Table, text
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import select, insert, update
 from sqlalchemy import and_
 from tempfile import mkdtemp
@@ -19,6 +19,34 @@ from movierelease.helpers import is_date, dateformat, lookup, lookup1, lookup2, 
 # Configure application
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+
+app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql+psycopg2://postgres:{}@localhost:5432/movies'.format(os.environ.get("POST_PASS"))
+db = SQLAlchemy(app)
+
+class Users(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	username = db.Column(db.String(80), unique=True, nullable=False)
+	hash = db.Column(db.String(255), nullable=False)
+	e_mail = db.Column(db.String(255), unique=True, nullable=False)
+	month = db.Column(db.Integer, default=1)
+	week = db.Column(db.Integer, default=1)
+	day_1 = db.Column(db.Integer, default=1)
+	day_0 = db.Column(db.Integer, default=1)
+	other = db.Column(db.Integer, default=0)
+
+	def __repr__(self):
+		return '<User %r>' % self.username
+
+class Movies(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	title = db.Column(db.String(255), nullable=False)
+	date = db.Column(db.String(255), nullable=False)
+	movie_id = db.Column(db.Integer, nullable=False)
+	user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+	released = db.Column(db.Integer, default=0) 
+
+	def __repr__(self):
+		return '<User %r>' % self.username
 
 # Mail server configuration
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
@@ -100,13 +128,7 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Configure sqlalchemy database
-engine = create_engine('postgresql+psycopg2://postgres:{}@localhost:5432/movies'.format(os.environ.get("POST_PASS")))
 
-# And tables
-metadata = MetaData(bind=engine)
-users = Table('users', metadata, autoload = True)
-movies = Table('movies', metadata, autoload = True)
 
 @app.route("/", methods=["GET", "POST"])
 @login_required
