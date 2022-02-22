@@ -1,9 +1,10 @@
+from movierelease import app
 import os
 import datetime
 import dateutil.relativedelta
 from datetime import date
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, redirect, render_template, request, session, flash
+from flask import redirect, render_template, request, session, flash
 from flask import jsonify
 from flask_session import Session
 from flask_mail import Mail, Message
@@ -13,10 +14,9 @@ from sqlalchemy import and_
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import is_date, dateformat, lookup, lookup1, lookup2, has_digits, has_letters, login_required
+from movierelease.helpers import is_date, dateformat, lookup, lookup1, lookup2, has_digits, has_letters, login_required
 
 # Configure application
-app = Flask(__name__)
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
