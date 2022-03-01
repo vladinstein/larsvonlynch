@@ -18,7 +18,7 @@ from movierelease.helpers import is_date, dateformat, lookup, lookup1, lookup2, 
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql+psycopg2://postgres:{}@localhost:5432/movies'.format(os.environ.get("POST_PASS"))
 db = SQLAlchemy(app)
 
 class Users(db.Model):
