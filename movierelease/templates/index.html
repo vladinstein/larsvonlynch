@@ -20,8 +20,8 @@
         <tbody>
             {% for row in rows_m %}
                 <tr>
-                    <td scope="row">{{row["title"]}}</td>
-                    <td>{{row["date"]}}</td>
+                    <td scope="row">{{ row["title"] }}</td>
+                    <td>{{ row["date"] }}</td>
                     <td>
                         <form action="/delete" method="post">
                             <input type="hidden" name="delete" value='{{row["id"]}}'>

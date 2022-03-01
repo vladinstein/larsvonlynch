@@ -2,7 +2,6 @@
 
 {% block main %} 
 <form action="/settings" method="post">
-    {% for row in rows %}
         <div class="form-group">
             <div class="mb-3">Please, remind me:</div>    
                 <div class="mb-3">
@@ -57,7 +56,6 @@
                 {% endif %}
             </p>        
         </div>
-    {% endfor %}    
     <button class="btn btn-primary" id="submit" name="submit">Save changes</button>
 </form>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>

@@ -61,56 +61,52 @@ mail = Mail(app)
 def test_job():
     with app.app_context():
         # Select all users
-        allus_stmt = (select(users))
-        with engine.connect() as conn:
-            all_users = conn.execute(allus_stmt).mappings().all()
+        all_users = Users.query.all()
         # Go through all users one-by-one
         for one_user in all_users:
             # Select all movies for that user
-            usmov_stmt = (select(movies).where(movies.c.user_id == one_user["id"]))
-            with engine.connect() as conn:
-                us_mov = conn.execute(usmov_stmt).mappings().all()
+            us_mov = Movies.query.filter_by(user_id=one_user.id).all()
             # Go through all movies one-by-one
             for movie in us_mov:
                 interval = 0
                 # Depending on the user's setting, send a message (30 days, week, 1 day or particular number of days before the release
                 # or on the day of the release)
                 # Check the setting, then check the date then set "interval" to 30, 7 or 1.
-                if one_user["month"]:
-                    if datetime.datetime.strptime(movie["date"], "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=30):
+                if one_user.month:
+                    if datetime.datetime.strptime(movie.date, "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=30):
                         interval = 30
-                if one_user["week"]:
-                    if datetime.datetime.strptime(movie["date"], "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=7):
+                if one_user.week:
+                    if datetime.datetime.strptime(movie.date, "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=7):
                         interval = 7
-                if one_user["other"]:
-                    if datetime.datetime.strptime(movie["date"], "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=one_user["other"]):
-                        interval = one_user["other"]
+                if one_user.other:
+                    if datetime.datetime.strptime(movie.date, "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=one_user.other):
+                        interval = one_user.other
                 # If interval is not 0, send the message with a particular interval. 
                 if interval:
-                    msg = Message("Lars Von Lynch", sender = "vladinstein@gmail.com", recipients = ["{}".format(one_user["e_mail"])])
-                    msg.html = render_template("mail.html", username=one_user["username"] , movie=movie["title"] , interval=interval, date=movie["date"])
+                    msg = Message("Lars Von Lynch", sender = "vladinstein@gmail.com", recipients = ["{}".format(one_user.e_mail)])
+                    msg.html = render_template("mail.html", username=one_user.username, movie=movie.title, interval=interval, date=movie.date)
                     mail.send(msg)
                 # Check the setting for 1 day (tomorrow), check the date, send the message if needed.
-                if one_user["day_1"]:
-                    if datetime.datetime.strptime(movie["date"], "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=1):
+                if one_user.day_1:
+                    if datetime.datetime.strptime(movie.date, "%Y-%m-%d").date() == date.today() + dateutil.relativedelta.relativedelta(days=1):
                         interval = 1
-                        msg = Message("Lars Von Lynch", sender = "vladinstein@gmail.com", recipients = ["{}".format(one_user["e_mail"])])
-                        msg.html = render_template("mail.html", username=one_user["username"] , movie=movie["title"] , interval=interval, date=movie["date"])
+                        msg = Message("Lars Von Lynch", sender = "vladinstein@gmail.com", recipients = ["{}".format(one_user.e_mail)])
+                        msg.html = render_template("mail.html", username=one_user.username, movie=movie.title, interval=interval, date=movie.date)
                         mail.send(msg)
                 # Check the setting "on the day of the release", check the date, send the message if needed.
-                if datetime.datetime.strptime(movie["date"], "%Y-%m-%d").date() == date.today():
-                    rel_stmt = (update(movies).where(and_(movies.c.user_id == one_user["id"], movies.c.movie_id == movie["movie_id"])).values(released=1))
-                    with engine.connect() as conn:
-                        conn.execute(rel_stmt)
-                    if one_user["day_0"]:
-                        msg = Message("Lars Von Lynch", sender = "vladinstein@gmail.com", recipients = ["{}".format(one_user["e_mail"])])
-                        msg.html = render_template("mail.html", username=one_user["username"] , movie=movie["title"] , interval=interval, date=movie["date"])
+                if datetime.datetime.strptime(movie.date, "%Y-%m-%d").date() == date.today():
+                    mov_rel = Movies.query.filter_by(user_id=one_user.id, movie_id=movie.movie_id).first()
+                    mov_rel.released = 1
+                    db.session.commit()
+                    if one_user.day_0:
+                        msg = Message("Lars Von Lynch", sender = "vladinstein@gmail.com", recipients = ["{}".format(one_user.e_mail)])
+                        msg.html = render_template("mail.html", username=one_user.username, movie=movie.title, interval=interval, date=movie.date)
                         mail.send(msg)
         return
 
 # This is going to perform the task above at the same intervals (every day, but can be a different interval)
 scheduler = BackgroundScheduler()
-job = scheduler.add_job(test_job, trigger='cron', hour='0', minute='28')
+job = scheduler.add_job(test_job, trigger='cron', hour='12', minute='43')
 scheduler.start()
 
 # Ensure responses aren't cached
@@ -128,22 +124,16 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-
-
 @app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
     """Show a table of movies"""
 
     # Get user name to pass it to layout template to say hello.
-    us_stmt = (select(users).where(users.c.id == session["user_id"]))
-    with engine.connect() as conn:
-        rows = conn.execute(us_stmt).mappings().all()
+    row = Users.query.filter_by(id=session["user_id"]).first()
     # Get all the movies for that user to put them in a table.
-    mov_stmt = (select(movies).where(movies.c.user_id == session["user_id"]))
-    with engine.connect() as conn:
-        rows_m = conn.execute(mov_stmt).mappings().all()
-    return render_template("index.html", rows_m=rows_m, rows=rows)
+    rows_m = Movies.query.filter_by(user_id=session["user_id"]).all()
+    return render_template("index.html", rows_m=rows_m, row=row)
 
 @app.route("/add", methods=["GET", "POST"])
 @login_required
@@ -190,18 +180,18 @@ def add():
     elif datetime.datetime.strptime(moviedb["release_date"], "%Y-%m-%d").date() == date.today():
         flash("This movie is being released today.")
         return redirect("/")
+        
     # Check if the movie is already in the list
-    dbl_stmt = (select(movies)).where(and_(movies.c.user_id == session["user_id"], movies.c.movie_id == moviedb["id"]))
-    with engine.connect() as conn:
-        check = conn.execute(dbl_stmt).first()
-    if check: 
+    check = Movies.query.filter_by(user_id=session["user_id"], movie_id=moviedb["id"]).first()
+    if check:
         flash("This movie is already in your list.")
         return redirect("/")
+
     # Otherwise, add it to the list
     else:
-        mov_stmt = (insert(movies).values(user_id=session["user_id"], title=moviedb["title"], date=moviedb["release_date"], movie_id=moviedb["id"]))
-        with engine.connect() as conn:
-            conn.execute(mov_stmt)
+        mov = Movies(user_id=session["user_id"], title=moviedb["title"], date=moviedb["release_date"], movie_id=moviedb["id"])
+        db.session.add(mov)
+        db.session.commit()
         return redirect("/")
 
 @app.route("/delete", methods=["GET", "POST"])
@@ -209,10 +199,9 @@ def add():
 def delete():
     """Delete movie"""
 
-    # Delete the movie fromthe db.
-    del_stmt = (movies.delete().where(movies.c.id == request.form.get("delete")))
-    with engine.connect() as conn:
-        conn.execute(del_stmt)
+    #Delete the movie from the db.
+    Movies.query.filter_by(id=request.form.get("delete")).delete()
+    db.session.commit()
     return redirect("/")
 
 @app.route("/login", methods=["GET", "POST"])
@@ -231,23 +220,20 @@ def login():
             return render_template("login.html")
 
         # Check password and username
-        pas_stmt = (select(users).where(users.c.username == request.form.get("username").lower()))
-        with engine.connect() as conn:
-            user_pas = conn.execute(pas_stmt).all()
-            if len(user_pas) != 1:
-                flash("The user with this username doesn't exist.")
-                return render_template("login.html")
-            user_pas = conn.execute(pas_stmt)
-            if not check_password_hash(user_pas.first().hash, request.form.get("password")):
-                flash("Wrong password.")
-                return render_template("login.html")
+        user_pas = Users.query.filter_by(username=request.form.get("username").lower()).all()
+        if len(user_pas) != 1:
+            flash("The user with this username doesn't exist.")
+            return render_template("login.html")
+        user_pas = Users.query.filter_by(username=request.form.get("username").lower()).first()
+        if not check_password_hash(user_pas.hash, request.form.get("password")):
+            flash("Wrong password.")
+            return render_template("login.html")
 
         # Start session for this user:
-        id_stmt = (select(users).where(users.c.username == request.form.get("username").lower())) 
-        with engine.connect() as conn:
-            user_id = conn.execute(id_stmt)
-            session["user_id"] = user_id.first().id
-            return redirect("/")
+        user_id = Users.query.filter_by(username=request.form.get("username").lower()).first()
+        session["user_id"] = user_id.id
+        return redirect("/")
+
     # If it's not "post", then render template
     return render_template("login.html")
 
@@ -286,35 +272,30 @@ def register():
             return render_template("register.html")
 
         # Flash "username already exists", if it already exists
-        exist_stmt = (select(users).where(users.c.username == request.form.get("username").lower()))
-        with engine.connect() as conn:
-            exist = conn.execute(exist_stmt).first()
+        exist = Users.query.filter_by(username=request.form.get("username").lower()).first()
         if exist:
             flash("The user with this username already exists.")
             return render_template("register.html")
-        
+
         # Flash "The user with this e-mail already exists", if this e-mail is already in the db.
-        email_stmt = (select(users).where(users.c.e_mail == request.form.get("e-mail").lower()))
-        with engine.connect() as conn:
-            email = conn.execute(email_stmt).first()
+        email = Users.query.filter_by(e_mail=request.form.get("e-mail").lower()).first()
         if email:
             flash("The user with this e-mail already exists.")
             return render_template("register.html")
-        
+
         # Create a hash for the password
         hash = generate_password_hash(request.form.get("password"))
 
         # Insert username, e-mail and hash into the database
-        hash_stmt = (insert(users).values(username=request.form.get("username").lower(), hash=hash, e_mail=request.form.get("e-mail").lower()))
-        with engine.connect() as conn:
-            conn.execute(hash_stmt)
-        
+        reg_us = Users(username=request.form.get("username").lower(), hash=hash, e_mail=request.form.get("e-mail").lower())
+        db.session.add(reg_us)
+        db.session.commit()
+
         # Start session for this user (take his id from the database)
-        id_stmt = (select(users).where(users.c.username == request.form.get("username").lower()))
-        with engine.connect() as conn:
-            user_id = conn.execute(id_stmt)
-            session["user_id"] = user_id.first().id
-            return redirect("/")
+        this_user = Users.query.filter_by(username=request.form.get("username").lower()).first()
+        session["user_id"] = this_user.id
+        return redirect("/")
+        
     else:
         # If not "post", render temlate.
         return render_template("register.html")
@@ -347,65 +328,52 @@ def settings():
                 days = int(request.form.get("other"))
         # If the checkbox "month" is checked or if there was "30" in the "other" field, 
         # set "month" in the db to "true(1)", otherwise to "false(0)".
-        if request.form.get("month") or days == 30:
-            mon_stmt = (update(users).where(users.c.id == session["user_id"]).values(month=1))
+        update = Users.query.filter_by(id=session["user_id"]).first()
+        if request.form.get("month") or days == 30:    
+            update.month = 1
         else:
-            mon_stmt = (update(users).where(users.c.id == session["user_id"]).values(month=0))
+            update.month = 0  
         # If the checkbox "week" is checked or if there was "7" in the "other" field, 
         # set "week" in the db to "true(1)", otherwise to "false(0)".
         if request.form.get("week") or days == 7:
-            week_stmt = (update(users).where(users.c.id == session["user_id"]).values(week=1))
+            update.week = 1
         else:
-            week_stmt = (update(users).where(users.c.id == session["user_id"]).values(week=0))
+            update.week = 0
         # If the checkbox "day_1" is checked or if there was "1" in the "other" field, 
         # set "day_1" in the db to "true(1)", otherwise to "false(0)".
         if request.form.get("day_1") or days == 1:
-            day_1_stmt = (update(users).where(users.c.id == session["user_id"]).values(day_1=1))
+            update.day_1 = 1
         else:
-            day_1_stmt = (update(users).where(users.c.id == session["user_id"]).values(day_1=0))
+            update.day_1 = 0
         # If the checkbox "day_0" is checked, set "day_0" in the db to "true(1)", otherwise to "false(0)".
         if request.form.get("day_0") or days == 0:
-            day_0_stmt = (update(users).where(users.c.id == session["user_id"]).values(day_0=1))
+            update.day_0 = 1
         else:
-            day_0_stmt = (update(users).where(users.c.id == session["user_id"]).values(day_0=0))
+            update.day_0 = 0
         # If there was a value in the "other" field and it was not 30, 7, 1 or 0, set "other" in the db to that value.    
         if request.form.get("other") and request.form.get("ch_other") and not days in {30, 7, 1, 0}:
-            oth_stmt = (update(users).where(users.c.id == session["user_id"]).values(other=request.form.get("other")))
-            with engine.connect() as conn:
-                conn.execute(oth_stmt)
+            update.other = request.form.get("other")
         # If there was a value in the "other" field and it WAS 30, 7, 1 or 0, set "other" to 0 (cause we already used one of the true-false above).
         if request.form.get("other") and request.form.get("ch_other") and days in {30, 7, 1, 0}:
-            oth_stmt = (update(users).where(users.c.id == session["user_id"]).values(other=0))
-            with engine.connect() as conn:
-                conn.execute(oth_stmt)
+            update.other = 0
         # If there is no input in checkbox "ch_other", set "other" in db to 0.
         if not request.form.get("ch_other"):
-            nooth_stmt = (update(users).where(users.c.id == session["user_id"]).values(other=0))
-            with engine.connect() as conn:
-                conn.execute(nooth_stmt)
-        with engine.connect() as conn:
-            conn.execute(mon_stmt)
-            conn.execute(week_stmt)
-            conn.execute(day_1_stmt)
-            conn.execute(day_0_stmt)
+            update.other = 0
+        db.session.commit()  
             
         return redirect("/settings")
     
     # Else simply show settings
     else:
-
-        set_stmt = (select(users).where(users.c.id == session["user_id"]))
-        with engine.connect() as conn:
-            rows = conn.execute(set_stmt).mappings().all()
-
-        return render_template("settings.html", rows=rows)
+        # Get user info to show his settings and to greet him.
+        row = Users.query.filter_by(id=session["user_id"]).first()
+        return render_template("settings.html", row=row)
 
 @app.route("/support")
 @login_required
 def support():
     """Show the support page"""
 
-    return render_template("support.html")
-
-if __name__ == "__main__":
-        app.run(debug=True, use_reloader=False)
+    # Get user name to pass it to layout template to say hello.
+    row = Users.query.filter_by(id=session["user_id"]).first()
+    return render_template("support.html", row=row)
