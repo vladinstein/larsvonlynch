@@ -19,6 +19,7 @@ from movierelease.helpers import is_date, dateformat, lookup, lookup1, lookup2, 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+# Fixing bug https://stackoverflow.com/questions/62688256/sqlalchemy-exc-nosuchmoduleerror-cant-load-plugin-sqlalchemy-dialectspostgre
 if app.config["SQLALCHEMY_DATABASE_URI"] and app.config["SQLALCHEMY_DATABASE_URI"].startswith("postgres://"):
     app.config["SQLALCHEMY_DATABASE_URI"] = app.config["SQLALCHEMY_DATABASE_URI"].replace("postgres://", "postgresql://", 1)
 db = SQLAlchemy(app)
@@ -245,7 +246,7 @@ def register():
         return redirect("/")
         
     else:
-        # If not "post", render temlate.
+        # If not "post", render template.
         return render_template("register.html")
 
 @app.route("/search")
