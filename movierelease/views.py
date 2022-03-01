@@ -1,7 +1,6 @@
 from movierelease import app
 import os
 import datetime
-import dateutil.relativedelta
 from datetime import date
 from flask import redirect, render_template, request, session, flash
 from flask import jsonify
@@ -19,7 +18,7 @@ from movierelease.helpers import is_date, dateformat, lookup, lookup1, lookup2, 
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql+psycopg2://postgres:{}@localhost:5432/movies'.format(os.environ.get("POST_PASS"))
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 db = SQLAlchemy(app)
 
 class Users(db.Model):
