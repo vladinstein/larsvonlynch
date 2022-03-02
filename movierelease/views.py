@@ -11,6 +11,7 @@ from sqlalchemy import select, insert, update
 from sqlalchemy import and_
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
+from email_validator import validate_email, EmailNotValidError
 
 from movierelease.helpers import is_date, dateformat, lookup, lookup1, lookup2, has_digits, has_letters, login_required
 
@@ -225,6 +226,15 @@ def register():
         if exist:
             flash("The user with this username already exists.")
             return render_template("register.html")
+
+        # Check if the e-mail is valid. 
+        try:
+            valid = validate_email(request.form.get("e-mail").lower())
+            email = valid.email
+        except EmailNotValidError:
+            flash("The e-mail is not valid.")
+            return render_template("register.html")
+
 
         # Flash "The user with this e-mail already exists", if this e-mail is already in the db.
         email = Users.query.filter_by(e_mail=request.form.get("e-mail").lower()).first()
