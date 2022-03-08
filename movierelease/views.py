@@ -228,6 +228,7 @@ def register():
             return render_template("register.html")
 
         # Check if the e-mail is valid. 
+        # https://stackoverflow.com/questions/8022530/how-to-check-for-valid-email-address/28982264#28982264
         try:
             valid = validate_email(request.form.get("e-mail").lower())
             email = valid.email
