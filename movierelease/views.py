@@ -144,6 +144,15 @@ def add():
         db.session.commit()
         return redirect("/")
 
+@app.route("/data")
+@login_required
+def data():
+    """Show the support page"""
+
+    # Get user name to pass it to layout template to say hello.
+    row = Users.query.filter_by(id=session["user_id"]).first()
+    return render_template("data.html", row=row)
+
 @app.route("/delete", methods=["GET", "POST"])
 @login_required
 def delete():

@@ -35,6 +35,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/support">Support</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/data">Data</a>
+                        </li>
                     </ul>
                     <span class="navbar-text">
                             Hello, {{ row["username"] }}.
@@ -62,6 +65,9 @@
             {% endif %}
             {% endwith %}
             {% block main %} {% endblock %}
+            <br>
+            <br>
+            All movie data is taken from <a href="https://www.themoviedb.org/">TMDb</a>. 
         </main>
         <script>
             // second most popular answer here
