@@ -1,5 +1,8 @@
 # Lars Von Lynch
-This application notifies its users about the upcoming movie releases. Each user creates a list of movies that he wants to follow (movies, that hasn't been released yet) and then gets notified by e-mail before each of the movies gets released (or on the day of the release). The users can adjust when exactly they want to be notified (30 days/7 days/1 day/any other number of days before the release or/and on the day of the release).
+This application notifies its users about the upcoming movie releases. Each user creates a list of movies that he wants to follow (movies, that hasn't been released yet) and then gets notified by e-mail before each of the movies gets released (or on the day of the release). The users can adjust when exactly they want to be notified (30 days/7 days/1 day/any other number of days before the release or/and on the day of the release). 
+
+# Data
+All the movie data used in this app is taken from [The Movie Database (TMDb)](https://www.themoviedb.org/).
 
 ## How it works
 * The user adds a movie to his list.
@@ -20,8 +23,8 @@ This application notifies its users about the upcoming movie releases. Each user
     * *index* route shows the table with the movies that this user has added to his list; 
     * *add* and *delete* routes add and delete movies from the database/user's list respectively; 
     * *login*, *logout* and *register* are used to take care of each users registration and the session;
-    * *search* sends dynamic API requests to a movie database "**themoviedb.org**" and returns a jsonify object so that the user can see a dynamic drop-down list of the movies with names similar to what he's typing (or what he copied and pasted);
-    * in the *settings*, the user can adjust notification settings (when he wants to recieve e-mails);
+    * *search* sends dynamic API requests to a movie database "**themoviedb.org**" and returns a jsonify object so that the user can see a dynamic drop-down list of the movies with names similar to what he's/she's typing (or what he/she copied and pasted);
+    * in the *settings*, the user can adjust notification settings (when he/she wants to recieve e-mails);
     * *support* route describes how to use the app.
 2. **helpers.py** contains functions used in the application. 
 3. **\_\_init\_\_.py** is where the Flask application object is created. We also run the application in this file.
@@ -43,8 +46,8 @@ This application notifies its users about the upcoming movie releases. Each user
 
 ### Notes
 
-1. The database management system used is PostgreSQL. I was useing SQLite at first, but it was impossible to use it with the free Heroku account. Another thing I had to change was the library used to interact with the database. At first I was using SQLAlchemy Core (with "engine" object and by creating tables manually without using classes for the tables). In order to work with Heroku I needed to create classes for the tables and Flask-SQLAlchemy seemed like a best and simplest solution for that. 
+1. The database management system used is PostgreSQL. I was using SQLite at first, but it was impossible to use it with the free Heroku account. Another thing I had to change was the library used to interact with the database. At first I was using SQLAlchemy Core (with "engine" object and by creating tables manually without using classes for the tables). In order to work with Heroku I needed to create classes for the tables and Flask-SQLAlchemy seemed like a best and simplest solution for that. 
 
-2. To get the movies info (release dates in particular) the app sends API requests to **themoviedb.org**. Functions *"lookup"* and *"lookup2"* in **helpers.py** are used for that purpose (depending on if the user typed the name of the movie and pressed enter or selected it from the drop-down list).  
+2. To get the movies info (release dates in particular) the app sends API requests to **themoviedb.org**. Functions *"lookup"* and *"lookup2"* in **helpers.py** are used for that purpose (depending on if the user typed the name of the movie and pressed enter or selected it from the drop-down list). *"lookup1"* function is used to send dynamic API requests to **themoviedb.org** in order to create a dynamic drop-down list of the movies with the names similar to what the user is typing. 
 
 3. Flask-Mail is used to send e-mails. 
